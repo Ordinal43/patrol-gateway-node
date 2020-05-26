@@ -106,7 +106,8 @@ void setup() {
 
     //strSSID#strPASS#Broker_Add#usernameMQTT#passwordMQTT#gatewayName>
     //bryan-poenya#lalelilolu#broker.shiftr.io#patrol_system#patrol_system#ESP_Gateway_1>
-    
+    //bryan-poenya#lalelilolu#broker.shiftr.io#samuelricky-skripsi-coba#sukukata123#2>
+
     Serial.println("");
     String outMessage = "";
     while(Serial.available()>0){
