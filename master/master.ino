@@ -288,8 +288,6 @@ void nrfConnect() {
  *    Make a radio call to each node in turn and retreive a message from each
  */
 void callAndReceiveNodeData(String targetQrNodeName, String payload) {
-    Serial.println("[*] Master unit has successfully sent and received data ");
-    
     byte byteArrTargetQrNodeName[targetQrNodeName.length()];
     targetQrNodeName.getBytes(byteArrTargetQrNodeName, targetQrNodeName.length());
     
@@ -328,7 +326,7 @@ void callAndReceiveNodeData(String targetQrNodeName, String payload) {
         }
     }
     else {
-        Serial.print("[-] The transmission to the selected node failed.");
+        Serial.println("[-] The transmission to the selected node failed.");
     }
 
     Serial.println("--------------------------------------------------------");
