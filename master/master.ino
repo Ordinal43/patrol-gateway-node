@@ -246,7 +246,7 @@ void mqttMessageReceived(String &topic, String &payload) {
   } 
   
   // check if topic is a /nodeqr subtopic
-  else if(topic.indexOf("/nodeqr/") > -1) {
+  else if(topic.indexOf(LIST_QR_TOPIC) > -1) {
     // ensure we dont collect data from nodes faster than selected rate
     currentTime = millis();
     while (currentTime - lastSentTime <= SEND_RATE) {}
