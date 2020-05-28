@@ -7,6 +7,12 @@
 WiFiClient net;
 
 /*********************
+  | API REQUEST
+*********************/
+#include <HTTPClient.h>
+String serverName = "http://192.168.43.140:8000";
+
+/*********************
   | MQTT CLIENT
 *********************/
 #include <MQTT.h>
@@ -82,6 +88,7 @@ void mqttConnect();
 void mqttMessageReceived(String &topic, String &payload);
 void nrfConnect();
 bool callAndReceiveNodeData(String targetQrNodeName, String payload);
+void logAcknowledge(String room_id, String sent, String time);
 
 void setup() {
     // setup serial communications for basic program display
@@ -258,6 +265,12 @@ void mqttMessageReceived(String &topic, String &payload) {
     bool isSent = callAndReceiveNodeData(targetQrNodeName, payload);
 
     lastSentTime = millis();
+    unsigned long diffMicros = lastSentTime - currentTime;
+    if(isSent) {
+      logAcknowledge(targetQrNodeName, String(1), String(diffMicros));
+    } else {
+      logAcknowledge(targetQrNodeName, String(0), String(diffMicros));
+    }
   }
 }
 
@@ -331,4 +344,33 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
 
     Serial.println("--------------------------------------------------------");
     return tx_sent;
+}
+
+
+void logAcknowledge(String room_id, String sent, String time)
+{
+  HTTPClient http;
+
+  String serverPath = serverName + "/api/acknowledges";
+
+  http.begin(serverPath.c_str());
+  http.addHeader("Content-Type", "application/json");
+
+  //String httpRequestData = "room_id=" + room_id + "&sent=" + sent + "&time" + time;
+  String httpRequestData = "{\"room_id\":\"" + room_id +"\",\"sent\":\"" + sent + "\",\"time\":\"" + time + "\"}";
+  
+  // Send HTTP GET request
+  int httpResponseCode = http.POST(httpRequestData);
+  String payload = http.getString();
+  Serial.println(payload);
+  if (httpResponseCode>0) {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+  }
+  else {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  // Free resources
+  http.end();
 }
