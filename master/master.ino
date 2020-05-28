@@ -88,7 +88,7 @@ void mqttConnect();
 void mqttMessageReceived(String &topic, String &payload);
 void nrfConnect();
 bool callAndReceiveNodeData(String targetQrNodeName, String payload);
-void logAcknowledge(String room_id, String sent, String time);
+void sendStatusToServer(String room_id, String sent, String time);
 
 void setup() {
     // setup serial communications for basic program display
@@ -267,9 +267,9 @@ void mqttMessageReceived(String &topic, String &payload) {
     lastSentTime = millis();
     unsigned long diffMicros = lastSentTime - currentTime;
     if(isSent) {
-      logAcknowledge(targetQrNodeName, String(1), String(diffMicros));
+      sendStatusToServer(targetQrNodeName, String(1), String(diffMicros));
     } else {
-      logAcknowledge(targetQrNodeName, String(0), String(diffMicros));
+      sendStatusToServer(targetQrNodeName, String(0), String(diffMicros));
     }
   }
 }
@@ -347,7 +347,7 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
 }
 
 
-void logAcknowledge(String room_id, String sent, String time)
+void sendStatusToServer(String room_id, String sent, String time)
 {
   HTTPClient http;
 
