@@ -81,7 +81,7 @@ String getValue(String data, char separator, int index);
 void mqttConnect();
 void mqttMessageReceived(String &topic, String &payload);
 void nrfConnect();
-void callAndReceiveNodeData(String targetQrNodeName, String payload);
+bool callAndReceiveNodeData(String targetQrNodeName, String payload);
 
 void setup() {
     // setup serial communications for basic program display
@@ -255,8 +255,8 @@ void mqttMessageReceived(String &topic, String &payload) {
     String targetQrNodeName = topic.substring(topic.lastIndexOf('/')+1);
     
     // send and receive sensor data from targeted node
-    callAndReceiveNodeData(targetQrNodeName, payload);
-    
+    bool isSent = callAndReceiveNodeData(targetQrNodeName, payload);
+
     lastSentTime = millis();
   }
 }
@@ -287,7 +287,7 @@ void nrfConnect() {
 /* Function: callAndReceiveNodeData
  *    Make a radio call to each node in turn and retreive a message from each
  */
-void callAndReceiveNodeData(String targetQrNodeName, String payload) {
+bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
     byte byteArrTargetQrNodeName[targetQrNodeName.length()];
     targetQrNodeName.getBytes(byteArrTargetQrNodeName, targetQrNodeName.length());
     
@@ -330,4 +330,5 @@ void callAndReceiveNodeData(String targetQrNodeName, String payload) {
     }
 
     Serial.println("--------------------------------------------------------");
+    return tx_sent;
 }
