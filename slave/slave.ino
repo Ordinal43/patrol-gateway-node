@@ -71,7 +71,6 @@ void lcdStartup();
 void nrfConnect(byte nodeAddress[]);
 void radioCheckAndReply();
 void printQR(String strData);
-void updateNodeData();
 
 void switchToNRF() {
   digitalWrite(CSN_PIN,HIGH);
@@ -145,6 +144,7 @@ void setup() {
   pinMode(TFT_CS, OUTPUT);
 
   switchToNRF();
+  
 }
 
 
@@ -223,8 +223,14 @@ void radioCheckAndReply() {
 
           printQR(dataFromMaster);
           
-          // update the node count after sending ack payload - provides continually changing data
-          updateNodeData();
+          if (messageCount < 500) messageCount++;
+          else messageCount = 1;
+          
+          Payload payloadReturn;
+          payloadReturn.message = "Received!";
+          payloadReturn.messageCount = messageCount;
+          
+          radio.writeAckPayload(1, &payloadReturn, sizeof(payloadReturn));
     }
     delay(1000);
 }
@@ -285,23 +291,4 @@ void printQR(String strData) {
 
   // switch back to NRF
   switchToNRF();
-}
-
-/* Function: updateNodeData
- *    updates the count variable for the node and stores it in the nRF24L01+ radio
- *    preloaded ack payload ready for sending on next received message
- */
-void updateNodeData() {
-  // increment node count - reset to 1 if exceeds 500
-  if (messageCount < 500) {
-    messageCount++;
-  } else {
-    messageCount = 1;
-  }
-
-  Payload payloadReturn;
-  payloadReturn.message = "Received!";
-  payloadReturn.messageCount = messageCount;
-  
-  radio.writeAckPayload(1, &payloadReturn, sizeof(payloadReturn));
 }
