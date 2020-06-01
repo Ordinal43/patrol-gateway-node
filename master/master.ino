@@ -266,11 +266,9 @@ void mqttMessageReceived(String &topic, String &payload) {
 
     lastSentTime = millis();
     unsigned long diffMicros = lastSentTime - currentTime;
-    if(isSent) {
-      sendStatusToServer(targetQrNodeName, String(1), String(diffMicros));
-    } else {
-      sendStatusToServer(targetQrNodeName, String(0), String(diffMicros));
-    }
+    sendStatusToServer(targetQrNodeName,
+                       String(isSent? 1 : 0),
+                       String(diffMicros));
   }
 }
 
@@ -324,7 +322,8 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
             
             int matchedIdx = 0;
             for(matchedIdx; matchedIdx < addrAmount; matchedIdx++) {
-               if(targetQrNodeName == strArrNodeAddr[matchedIdx]) break;
+               if(targetQrNodeName == strArrNodeAddr[matchedIdx])
+                  break;
             }
             // read ack payload and copy data to relevant remoteNodeData array
             radio.read(&remoteNodeData[matchedIdx], sizeof(remoteNodeData[matchedIdx]));
