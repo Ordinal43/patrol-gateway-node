@@ -149,13 +149,10 @@ void setup() {
     gatewayName = getValue(readData,'#',5); Serial.print("client name   : ");Serial.println(gatewayName);
 
     Serial.println("Finish read\n");
-  
-    // put your setup code here, to run once:
     strSSID.toCharArray(buff2,(strSSID.length()+1));
     Serial.println(buff2);
     strPASS.toCharArray(buff1,(strPASS.length()+1));
     Serial.println(buff1);
-    
     WiFi.begin(buff2, buff1);
 
     // Note: Local domain names (e.g. "Computer.local" on OSX) are not supported by Arduino.
@@ -217,8 +214,9 @@ void mqttConnect() {
   Serial.println(LIST_NODENAME_TOPIC);
   client.subscribe(LIST_NODENAME_TOPIC);
 
+  // Resubscribe to subtopic 
+  // for receiving qrcode when disconnected
   for(int i = 0; i < addrAmount; i++) {
-    // subscribe to subtopic for receiving qrcode
     String qrSubtopic = LIST_QR_TOPIC + strArrNodeAddr[i];
     client.subscribe(qrSubtopic);
     Serial.print("Subscribed to: "); Serial.println(qrSubtopic); 
@@ -240,8 +238,8 @@ void mqttMessageReceived(String &topic, String &payload) {
     Serial.print("Received address amount : "); Serial.println(addrAmount);
     
     for(int i = 0; i < addrAmount; i++) {
-      String tempNodeAddr = getValue(payload,'#',i); Serial.print("Node QR address : "); Serial.println(tempNodeAddr);
-
+      String tempNodeAddr = getValue(payload,'#',i);
+      Serial.print("Node QR address : "); Serial.println(tempNodeAddr);
       // store QR node address in array for index checking later
       strArrNodeAddr[i] = tempNodeAddr;
     }
@@ -249,7 +247,6 @@ void mqttMessageReceived(String &topic, String &payload) {
     // reconnect with new topic
     client.disconnect();
     mqttConnect();
-    
     nrfConnect(); 
   } 
   
@@ -278,7 +275,7 @@ void nrfConnect() {
   Serial.println("Begin nRF24L01+ configuration...");
   // begin radio object
   radio.begin();
-    
+
   // set power level of the radio
   radio.setPALevel(RF24_PA_LOW);
   
