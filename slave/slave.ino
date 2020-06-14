@@ -13,8 +13,8 @@ String strAddress;
 #include <printf.h>
 
 // chip select and RF24 radio setup pins
-#define CE_PIN 17
-#define CSN_PIN 4
+#define CE_PIN 12
+#define CSN_PIN 14
 RF24 radio(CE_PIN,CSN_PIN);
 
 // check how many times mesage has been received 

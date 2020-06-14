@@ -46,8 +46,8 @@ char buff4[150];
 #include <printf.h>
 
 // set Chip-Enable (CE) and Chip-Select-Not (CSN) radio setup pins
-#define CE_PIN 17
-#define CSN_PIN 4
+#define CE_PIN 12
+#define CSN_PIN 14
 
 // set transmission cycle send rate - in milliseconds
 #define SEND_RATE 1000
