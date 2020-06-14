@@ -232,7 +232,6 @@ void radioCheckAndReply() {
           
           radio.writeAckPayload(1, &payloadReturn, sizeof(payloadReturn));
     }
-    delay(1000);
 }
 
 void printQR(String strData) {
