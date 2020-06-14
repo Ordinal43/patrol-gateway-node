@@ -173,7 +173,7 @@ String getValue(String data, char separator, int index) {
 
 void lcdStartup() {
   TFTscreen.begin();
-  TFTscreen.setOrientation(2);
+  TFTscreen.setOrientation(0);
   TFTscreen.setBacklightBrightness(128);
 }
 
