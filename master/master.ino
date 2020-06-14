@@ -276,6 +276,9 @@ void nrfConnect() {
   // begin radio object
   radio.begin();
 
+  // turn off auto acknowledgement since we'll be using it manually
+  radio.setAutoAck(false);
+  
   // set power level of the radio
   radio.setPALevel(RF24_PA_LOW);
   
