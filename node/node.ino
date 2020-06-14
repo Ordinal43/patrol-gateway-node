@@ -61,7 +61,7 @@ uint8_t borderWidth = 5;
 char dataCharArray[100];
 String strQrcode="";
 
-#define LEDPIN 2
+#define LED_PIN 32
 
 /*********************
   | METHOD DEFINITIONS
@@ -123,8 +123,8 @@ void setup() {
     }
   }
   
-  pinMode(LEDPIN,OUTPUT);
-  digitalWrite(LEDPIN,LOW);
+  pinMode(LED_PIN,OUTPUT);
+  digitalWrite(LED_PIN,LOW);
 
   Serial.println("Read data from EEPROM");
   String readData = EEPROM.readString(0); 
@@ -204,7 +204,7 @@ void nrfConnect(byte nodeAddress[]) {
   // start listening on radio
   radio.startListening();
 
-  digitalWrite(LEDPIN,HIGH);
+  digitalWrite(LED_PIN,HIGH);
 }
 
 

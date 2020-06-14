@@ -49,6 +49,9 @@ char buff4[150];
 #define CE_PIN 12
 #define CSN_PIN 14
 
+// set LED Pin
+#define LED_PIN 32
+
 // set transmission cycle send rate - in milliseconds
 #define SEND_RATE 1000
 
@@ -77,8 +80,6 @@ Payload remoteNodeData[MAX_NRF_CONNECTION];
 // system operation timing variables - set SEND_RATE to limit transmit rate
 unsigned long currentTime;
 unsigned long lastSentTime;
-
-#define LEDPIN 2
 
 /*********************
   | METHOD DEFINITIONS
@@ -132,8 +133,8 @@ void setup() {
         outMessage.concat(inChar);
     }
 
-    pinMode(LEDPIN,OUTPUT);
-    digitalWrite(LEDPIN,LOW);
+    pinMode(LED_PIN,OUTPUT);
+    digitalWrite(LED_PIN,LOW);
 
     Serial.println("Read data from EEPROM");
     //EEPROM.writeString(0,"kingcrimson#lalilulelo#broker.shiftr.io#patrol_system#patrol_system#ESP_Gateway");
@@ -271,7 +272,7 @@ void mqttMessageReceived(String &topic, String &payload) {
 
 
 void nrfConnect() {
-  digitalWrite(LEDPIN,LOW);
+  digitalWrite(LED_PIN,LOW);
   Serial.println("Begin nRF24L01+ configuration...");
   // begin radio object
   radio.begin();
@@ -291,7 +292,7 @@ void nrfConnect() {
   // enable ack payload - each slave replies with sensor data using this feature
   radio.enableAckPayload();
 
-  digitalWrite(LEDPIN,HIGH);
+  digitalWrite(LED_PIN,HIGH);
   Serial.println("nRF24L01+ configured...");
 }
 
