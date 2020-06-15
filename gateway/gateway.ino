@@ -250,7 +250,6 @@ void mqttMessageReceived(String &topic, String &payload) {
     while (currentTime - lastSentTime <= SEND_RATE) {}
 
     String targetQrNodeName = topic.substring(topic.lastIndexOf('/')+1);
-    
     // send and receive sensor data from targeted node
     bool isSent = callAndReceiveNodeData(targetQrNodeName, payload);
 
@@ -342,8 +341,8 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
                 if (!timeout) {
                   radio.read( &ackPayload, sizeof(ackPayload) );
                   Serial.print("[+] Successfully completed transfer to node: ");
-                  Serial.print(targetQrNodeName);
-                  Serial.println("  ---- Acknowledgement message (2/2): ");
+                  Serial.println(targetQrNodeName);
+                  Serial.print("  ---- Acknowledgement message (2/2): ");
                   Serial.println(ackPayload);
                   
                   radio.stopListening();
