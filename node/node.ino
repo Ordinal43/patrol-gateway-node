@@ -203,20 +203,31 @@ void nrfConnect(byte nodeAddress[]) {
 
 bool firstPartSent = false;
 char message[10] = "Received!";
+char completeData[70] = "";
 void radioCheckAndReply() {
     radio.startListening();
     
-    char completeData[70] = "";
-    if ( radio.available() ) {
+    unsigned long started_waiting_at = millis();
+    bool timeout = false;
+    while ( !radio.available() && !timeout )
+      if (millis() - started_waiting_at > 500)
+        timeout = true;
+
+    if (!timeout) {
           char dataFromMaster[32] = "";
           radio.read( &dataFromMaster, sizeof(dataFromMaster) );
 
-          Serial.print("Received: ");
+          Serial.print("Received part ");
+          if(!firstPartSent)
+            Serial.print("(1/2) :");
+          else
+            Serial.print("(2/2) :");
+          
           Serial.println(dataFromMaster);
           strcat(completeData, dataFromMaster);
 
           radio.stopListening();
-          bool tx_sent = radio.write(&message, 10);;
+          bool tx_sent = radio.write(&message, 10);
           if(tx_sent) {
             if(firstPartSent) {
               Serial.print("Complete payload from gateway: ");
@@ -228,6 +239,9 @@ void radioCheckAndReply() {
             } else {
               firstPartSent = true;
             }
+          } else {
+            memset(completeData, 0, sizeof completeData);
+            firstPartSent = false;
           }
     }
 }

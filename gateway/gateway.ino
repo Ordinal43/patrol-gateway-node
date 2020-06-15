@@ -312,13 +312,20 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
     if (tx_sent) {
         // wait for ack packet
         radio.startListening();
-        if(radio.available()){
+
+        unsigned long started_waiting_at = millis();
+        bool timeout = false;
+        while ( !radio.available() && !timeout )
+          if (millis() - started_waiting_at > 500)
+            timeout = true;
+            
+        if(!timeout){
             radio.read( &ackPayload, sizeof(ackPayload) );
             Serial.print("[+] Successfully sent first part to node: ");
-            Serial.print(targetQrNodeName);
+            Serial.println(targetQrNodeName);
             Serial.print("  ---- Acknowledgement message  (1/2): ");
             Serial.println(ackPayload);
-  
+
             radio.stopListening();
             payload = payload.substring(32-1);
             payload.toCharArray(payloadChar, 32);
@@ -326,14 +333,21 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
       
             if(tx_sent) {
                 radio.startListening();
-                if (radio.available()) {
+
+                started_waiting_at = millis();
+                while ( !radio.available() && !timeout )
+                  if (millis() - started_waiting_at > 500)
+                    timeout = true;
+                    
+                if (!timeout) {
                   radio.read( &ackPayload, sizeof(ackPayload) );
                   Serial.print("[+] Successfully completed transfer to node: ");
                   Serial.print(targetQrNodeName);
-                  Serial.print("  ---- Acknowledgement message (2/2): ");
+                  Serial.println("  ---- Acknowledgement message (2/2): ");
                   Serial.println(ackPayload);
                   
                   radio.stopListening();
+                  Serial.println("\n\n--------------------------------------------------------");
                   return tx_sent;
                 }
             }
@@ -341,7 +355,7 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
     }
 
     Serial.println("[-] The transmission to the selected node failed.");
-    Serial.println("--------------------------------------------------------");
+    Serial.println("\n\n--------------------------------------------------------");
     return tx_sent;
 }
 
