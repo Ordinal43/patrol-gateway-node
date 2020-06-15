@@ -167,6 +167,7 @@ void setup() {
     client.onMessage(mqttMessageReceived);
     
     mqttConnect();
+    nrfConnect();
 }
 
 void loop() {
@@ -251,7 +252,6 @@ void mqttMessageReceived(String &topic, String &payload) {
     // reconnect with new topic
     client.disconnect();
     mqttConnect();
-    nrfConnect(); 
   } 
   
   // check if topic is a /nodeqr subtopic
