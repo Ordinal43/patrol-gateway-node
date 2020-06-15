@@ -190,25 +190,18 @@ void nrfConnect(byte nodeAddress[]) {
   // set RF datarate
   radio.setDataRate(RF24_250KBPS);
 
-  radio.openWritingPipe(nodeAddress);
-  radio.openReadingPipe(1, nodeAddress);     
-
   radio.enableAckPayload();
 
-  Payload payloadReturn;
-  payloadReturn.message = "Connected!";
-  payloadReturn.messageCount = messageCount;
-  
-  radio.writeAckPayload(1, &payloadReturn, sizeof(payloadReturn));
-
-  // print radio config details to console
-  printf_begin();
   radio.printDetails();
 
+  radio.openWritingPipe(nodeAddress);
+  radio.openReadingPipe(1, nodeAddress);
+  
   // start listening on radio
   radio.startListening();
 
   digitalWrite(LED_PIN,HIGH);
+  Serial.println("nRF24L01+ configured...");
 }
 
 
