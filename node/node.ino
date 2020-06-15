@@ -36,11 +36,11 @@ typedef struct payload Payload;
 #include "TFT_22_ILI9225.h"
 #include <../fonts/FreeSans9pt7b.h>
 #include <../fonts/FreeSans12pt7b.h>
-#define TFT_RST 26
-#define TFT_RS  25
-#define TFT_CLK 18
-#define TFT_SDI 23
 #define TFT_CS  5
+#define TFT_CLK 18
+#define TFT_SDI 19
+#define TFT_RS  2
+#define TFT_RST 15
 #define TFT_LED 0     // 0 if wired to +5V directly
 #define TFT_BRIGHTNESS 200 // Initial brightness of TFT backlight (optional)
 // Use hardware SPI (faster - on Uno: 13-SCK, 12-MISO, 11-MOSI)
