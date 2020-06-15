@@ -266,27 +266,22 @@ void mqttMessageReceived(String &topic, String &payload) {
 void nrfConnect() {
   digitalWrite(LED_PIN,LOW);
   Serial.println("Begin nRF24L01+ configuration...");
+
   // begin radio object
   radio.begin();
 
-  // turn off auto acknowledgement since we'll be using it manually
-  radio.setAutoAck(false);
-  
-  // set power level of the radio
   radio.setPALevel(RF24_PA_LOW);
-  
-  // set RF datarate - lowest rate for longest range capability
   radio.setDataRate(RF24_250KBPS);
   
   // set time between retries and max no. of retries
   radio.setRetries(4, 5);
   
-  // enable ack payload - each slave replies with sensor data using this feature
+  radio.enableDynamicPayloads();
   
   // print radio config details to console
   radio.printDetails();
 
-  digitalWrite(LED_PIN,HIGH);
+  digitalWrite(LED_PIN, HIGH);
   Serial.println("nRF24L01+ configured...");
 }
 
@@ -368,11 +363,13 @@ void sendStatusToServer(String room_id, String sent, String time)
   int httpResponseCode = http.POST(httpRequestData);
   String payload = http.getString();
   Serial.println(payload);
-  if (httpResponseCode>0) {
+  if (httpResponseCode>0){
+    Serial.println("[+] HTTP Request successful.");
     Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
   }
   else {
+    Serial.println("[-] HTTP Request failed.");
     Serial.print("Error code: ");
     Serial.println(httpResponseCode);
   }
