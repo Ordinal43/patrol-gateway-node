@@ -64,19 +64,8 @@ RF24 radio(CE_PIN,CSN_PIN);
 // counter for address amount
 int addrAmount;
 
-struct payload {
-   String message;
-   int messageCount;
-};
-
-typedef struct payload Payload;
-
 // String array to store addresses for each sensor node
-// used to find index of remoteNodeData array
 String strArrNodeAddr[MAX_NRF_CONNECTION];
-
-// array of Payloads for data from each slave node: { message, returned_count }
-Payload remoteNodeData[MAX_NRF_CONNECTION];
 
 // system operation timing variables - set SEND_RATE to limit transmit rate
 unsigned long currentTime;
@@ -293,8 +282,7 @@ void nrfConnect() {
   radio.setRetries(4, 5);
   
   // enable ack payload - each slave replies with sensor data using this feature
-  radio.enableAckPayload();
-
+  
   // print radio config details to console
   radio.printDetails();
 
@@ -313,41 +301,51 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
     radio.openReadingPipe(1, byteArrTargetQrNodeName);
     
     radio.stopListening();
-    
+
+    char payloadChar[32] = "";
+    payload.toCharArray(payloadChar, 32);
+
     Serial.print("[*] Attempting to transmit data to node ");
     Serial.println(targetQrNodeName);
     Serial.print("[*] The payload being sent is: ");
     Serial.println(payload);
     
-    // boolean to indicate if radio.write() tx was successful
     bool tx_sent;
-    tx_sent = radio.write(&payload, sizeof(payload));
+    char ackPayload[10] = "";
+    tx_sent = radio.write(&payloadChar, sizeof(payloadChar));
     
-    // if tx success - receive and read slave node ack reply
     if (tx_sent) {
-        if (radio.isAckPayloadAvailable()) {
-            
-            int matchedIdx = 0;
-            for(matchedIdx; matchedIdx < addrAmount; matchedIdx++) {
-               if(targetQrNodeName == strArrNodeAddr[matchedIdx])
-                  break;
+        // wait for ack packet
+        radio.startListening();
+        if(radio.available()){
+            radio.read( &ackPayload, sizeof(ackPayload) );
+            Serial.print("[+] Successfully sent first part to node: ");
+            Serial.print(targetQrNodeName);
+            Serial.print("  ---- Acknowledgement message  (1/2): ");
+            Serial.println(ackPayload);
+  
+            radio.stopListening();
+            payload = payload.substring(32-1);
+            payload.toCharArray(payloadChar, 32);
+            tx_sent = radio.write(&payloadChar, sizeof(payloadChar));
+      
+            if(tx_sent) {
+                radio.startListening();
+                if (radio.available()) {
+                  radio.read( &ackPayload, sizeof(ackPayload) );
+                  Serial.print("[+] Successfully completed transfer to node: ");
+                  Serial.print(targetQrNodeName);
+                  Serial.print("  ---- Acknowledgement message (2/2): ");
+                  Serial.println(ackPayload);
+                  
+                  radio.stopListening();
+                  return tx_sent;
+                }
             }
-            // read ack payload and copy data to relevant remoteNodeData array
-            radio.read(&remoteNodeData[matchedIdx], sizeof(remoteNodeData[matchedIdx]));
-            
-            Serial.print("[+] Successfully received data from node: ");
-            Serial.print(targetQrNodeName + " with index of ");
-            Serial.println(matchedIdx);
-            Serial.print("  ---- The node count received was: ");
-            Serial.println(remoteNodeData[matchedIdx].messageCount);
-            Serial.print("  ---- The message was: ");
-            Serial.println(remoteNodeData[matchedIdx].message);
         }
     }
-    else {
-        Serial.println("[-] The transmission to the selected node failed.");
-    }
 
+    Serial.println("[-] The transmission to the selected node failed.");
     Serial.println("--------------------------------------------------------");
     return tx_sent;
 }
@@ -355,6 +353,7 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
 
 void sendStatusToServer(String room_id, String sent, String time)
 {
+  Serial.println("Sending status to server");
   HTTPClient http;
 
   String serverPath = serverName + "/api/acknowledges";

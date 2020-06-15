@@ -20,15 +20,6 @@ RF24 radio(CE_PIN,CSN_PIN);
 
 // check how many times mesage has been received 
 int messageCount = 0;
-// String to store payload from master
-String dataFromMaster = "";
-
-struct payload {
-   String message;
-   int messageCount;
-};
-
-typedef struct payload Payload;
 
 /*********************
   | SCREEN TFT ILI9225 176*220
@@ -149,7 +140,6 @@ void setup() {
   pinMode(TFT_CS, OUTPUT);
 
   switchToNRF();
-  
 }
 
 
@@ -191,7 +181,7 @@ void nrfConnect(byte nodeAddress[]) {
   // set RF datarate
   radio.setDataRate(RF24_250KBPS);
 
-  radio.enableAckPayload();
+  radio.enableDynamicPayloads();
 
   radio.printDetails();
 
@@ -210,25 +200,35 @@ void nrfConnect(byte nodeAddress[]) {
  *    sends the preloaded node data over the nrf24l01+ radio when
  *    a message is received by the master
  */
-void radioCheckAndReply() {
-    // check for radio message and send sensor data using auto-ack
-    if ( radio.available() ) {
-          radio.read( &dataFromMaster, sizeof(dataFromMaster) );
-          Serial.println("Received request from master - sending preloaded data.");
-          Serial.print("The received payload from the master was: ");
-          Serial.println(dataFromMaster);
-          Serial.println("--------------------------------------------------------");
 
-          printQR(dataFromMaster);
-          
-          if (messageCount < 500) messageCount++;
-          else messageCount = 1;
-          
-          Payload payloadReturn;
-          payloadReturn.message = "Received!";
-          payloadReturn.messageCount = messageCount;
-          
-          radio.writeAckPayload(1, &payloadReturn, sizeof(payloadReturn));
+bool firstPartSent = false;
+char message[10] = "Received!";
+void radioCheckAndReply() {
+    radio.startListening();
+    
+    char completeData[70] = "";
+    if ( radio.available() ) {
+          char dataFromMaster[32] = "";
+          radio.read( &dataFromMaster, sizeof(dataFromMaster) );
+
+          Serial.print("Received: ");
+          Serial.println(dataFromMaster);
+          strcat(completeData, dataFromMaster);
+
+          radio.stopListening();
+          bool tx_sent = radio.write(&message, 10);;
+          if(tx_sent) {
+            if(firstPartSent) {
+              Serial.print("Complete payload from gateway: ");
+              Serial.println(completeData);
+              Serial.println("--------------------------------------------------------");
+              printQR(completeData);
+              memset(completeData, 0, sizeof completeData);
+              firstPartSent = false;
+            } else {
+              firstPartSent = true;
+            }
+          }
     }
 }
 
@@ -286,6 +286,5 @@ void printQR(String strData) {
   y += height + 5; // Set y position to string height plus shift down 10 pixels
   TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_CYAN); // Print string
 
-  // switch back to NRF
   switchToNRF();
 }
