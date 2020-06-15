@@ -88,6 +88,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println("[*][*][*] Beginning nRF24L01+ ack-payload slave device program [*][*][*]");
 
+  printf_begin();
+  
   if (!EEPROM.begin(200)) {
     Serial.println("Failed to initialise EEPROM");
     Serial.println("Restarting...");

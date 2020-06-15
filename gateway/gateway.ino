@@ -96,6 +96,8 @@ void setup() {
     Serial.begin(115200);
     Serial.println("[*][*][*] Beginning MQTT and nRF24L01+ master-multiple-slave program [*][*][*]");
 
+    printf_begin();
+    
     if (!EEPROM.begin(200)) {
       Serial.println("Failed to initialise EEPROM");
       Serial.println("Restarting...");
@@ -121,7 +123,7 @@ void setup() {
     while(Serial.available()>0){
       char inChar = Serial.read();
       if(inChar == '>'){
-        Serial.println("Recieve serial data");
+        Serial.println("Receive serial data");
         Serial.println(outMessage);
         Serial.println("Write to EEPROM");
         EEPROM.writeString(0, outMessage);
@@ -291,6 +293,9 @@ void nrfConnect() {
   
   // enable ack payload - each slave replies with sensor data using this feature
   radio.enableAckPayload();
+
+  // print radio config details to console
+  radio.printDetails();
 
   digitalWrite(LED_PIN,HIGH);
   Serial.println("nRF24L01+ configured...");
