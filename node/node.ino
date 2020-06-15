@@ -132,7 +132,9 @@ void setup() {
   String readData = EEPROM.readString(0); 
   Serial.println(readData);
 
-  strAddress = getValue(readData,'>',0); Serial.print("Node address  : "); Serial.println(strAddress);
+  strAddress = getValue(readData,'>',0);
+  strAddress = strAddress.substring(0, strAddress.length()-1);
+  Serial.print("Node address  : "); Serial.println(strAddress);
   
   Serial.println("Finish read\n");
 
