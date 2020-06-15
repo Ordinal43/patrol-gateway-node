@@ -280,7 +280,7 @@ void printQR(String strData) {
     }
   }
 
-  strTextDisplay = "Slave Node"; // Create string object
+  strTextDisplay = strAddress; // Create string object
   TFTscreen.setGFXFont(&FreeSans9pt7b);
   TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
   x = 10;
