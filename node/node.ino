@@ -128,7 +128,7 @@ void setup() {
 
   strAddress = getValue(readData,'>',0);
   strAddress = strAddress.substring(0, strAddress.length()-1);
-  strAddress = "node" + strAddress;
+  strAddress = strAddress + "node";
   Serial.print("Node address  : "); Serial.println(strAddress);
   
   Serial.println("Finish read\n");
