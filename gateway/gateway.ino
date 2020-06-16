@@ -296,21 +296,20 @@ void mqttMessageReceived(String &topic, String &payload) {
     mqttConnect();
   } 
   
-  // check if topic is a /nodeqr subtopic
-  else if(topic.indexOf(LIST_QR_TOPIC) > -1) {
+  else if(topic.startsWith(LIST_QR_TOPIC)) {
     // ensure we dont collect data from nodes faster than selected rate
-    currentTime = millis();
-    while (currentTime - lastSentTime <= SEND_RATE) {}
-
-    String targetQrNodeName = topic.substring(topic.lastIndexOf('/')+1);
+    String targetQrNodeName = topic.substring(8);
+    Serial.println("Send to: " + targetQrNodeName);
+    Serial.println("Payload: " + payload);
     // send and receive sensor data from targeted node
+
+    lastSentTime = micros();
     bool isSent = callAndReceiveNodeData(targetQrNodeName, payload);
 
-    lastSentTime = millis();
-    unsigned long diffMicros = lastSentTime - currentTime;
-    sendStatusToServer(targetQrNodeName,
-                       String(isSent? 1 : 0),
-                       String(diffMicros));
+    unsigned long diffMicros = micros() - lastSentTime;
+//    sendStatusToServer(targetQrNodeName,
+//                       String(isSent? 1 : 0),
+//                       String(diffMicros));
   }
 }
 
