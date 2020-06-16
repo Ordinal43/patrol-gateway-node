@@ -289,6 +289,7 @@ void printQR(String strData) {
   }
 
   strTextDisplay = strAddress; // Create string object
+  strTextDisplay.toUpperCase();
   TFTscreen.setGFXFont(&FreeSans9pt7b);
   TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
   x = 10;
@@ -315,11 +316,18 @@ void printNoShift() {
   switchToLCD();
   TFTscreen.clear();
 
-  strTextDisplay = "No shift available"; // Create string object
+  strTextDisplay = strAddress; // Create string object
+  strTextDisplay.toUpperCase();
   TFTscreen.setGFXFont(&FreeSans9pt7b);
   TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
   x = 10;
   y = 100;
+  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_CYAN); // Print string
+
+  strTextDisplay = "No shift available"; // Create string object
+  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
+  x = 10;
+  y += height + 10; // Set y position to string height plus shift down 10 pixels
   TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_YELLOW); // Print string
 
   shiftEmptyShown = true;
