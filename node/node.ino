@@ -80,7 +80,7 @@ void setup() {
 
   // setup serial communications for basic program display
   Serial.begin(115200);
-  Serial.println("[*][*][*] Beginning nRF24L01+ ack-payload slave device program [*][*][*]");
+  Serial.println("[*][*][*] Beginning nRF24L01+ ack-payload node device program [*][*][*]");
 
   printf_begin();
   
@@ -206,6 +206,7 @@ void nrfConnect(byte nodeAddress[]) {
 bool firstPartSent = false;
 char message[10] = "Received!";
 char completeData[70] = "";
+
 void radioCheckAndReply() {
     radio.startListening();
     
