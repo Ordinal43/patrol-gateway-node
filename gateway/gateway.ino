@@ -108,7 +108,7 @@ void switchToLCD() {
 void setup() {
     // setup serial communications for basic program display
     Serial.begin(115200);
-    Serial.println("[*][*][*] Beginning MQTT and nRF24L01+ master-multiple-slave program [*][*][*]");
+    Serial.println("[*][*][*] Beginning MQTT and nRF24L01+ gateway device program [*][*][*]");
 
     printf_begin();
     
@@ -130,7 +130,7 @@ void setup() {
 
     //strSSID#strPASS#Broker_Add#usernameMQTT#passwordMQTT#gatewayName>
     //bryan-poenya#lalelilolu#broker.shiftr.io#patrol_system#patrol_system#ESP_Gateway_1>
-    //bryan-poenya#lalelilolu#broker.shiftr.io#samuelricky-skripsi-coba#sukukata123#2>
+    //ricky#abcdefgh#broker.shiftr.io#samuelricky-skripsi-coba#sukukata123#2>
 
     Serial.println("");
     String outMessage = "";
@@ -153,8 +153,6 @@ void setup() {
     digitalWrite(LED_PIN,LOW);
 
     Serial.println("Read data from EEPROM");
-    //EEPROM.writeString(0,"kingcrimson#lalilulelo#broker.shiftr.io#patrol_system#patrol_system#ESP_Gateway");
-    //EPROM.commit();
     String readData = EEPROM.readString(0); 
     Serial.println(readData);
 
@@ -235,6 +233,8 @@ void printWelcome(String gatewayName) {
 
 
 void mqttConnect() {
+  Serial.println("Begin MQTT config...");
+  
   Serial.print("checking wifi...");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
@@ -255,8 +255,8 @@ void mqttConnect() {
   Serial.println("\nbroker connected!");
 
   LIST_NODENAME_TOPIC = "/config-gateway/" + gatewayName;
-  Serial.println(LIST_NODENAME_TOPIC);
   client.subscribe(LIST_NODENAME_TOPIC);
+  Serial.print("Subscribed to: "); Serial.println(LIST_NODENAME_TOPIC);
 
   // Resubscribe to subtopic 
   // for receiving qrcode when disconnected
@@ -265,6 +265,9 @@ void mqttConnect() {
     client.subscribe(qrSubtopic);
     Serial.print("Subscribed to: "); Serial.println(qrSubtopic); 
   }
+
+  Serial.println("MQTT configured...");
+  Serial.println();
 }
 
 void mqttMessageReceived(String &topic, String &payload) {
