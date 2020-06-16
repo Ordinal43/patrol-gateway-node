@@ -62,14 +62,48 @@ unsigned long currentTime;
 unsigned long lastSentTime;
 
 /*********************
+  | SCREEN TFT ILI9225 176*220
+*********************/
+#include "SPI.h"
+#include "TFT_22_ILI9225.h"
+#include <../fonts/FreeSans9pt7b.h>
+#include <../fonts/FreeSans12pt7b.h>
+#define TFT_CS  5
+#define TFT_CLK 18
+#define TFT_SDI 19
+#define TFT_RS  2
+#define TFT_RST 15
+#define TFT_LED 0     // 0 if wired to +5V directly
+#define TFT_BRIGHTNESS 200 // Initial brightness of TFT backlight (optional)
+// Use hardware SPI (faster - on Uno: 13-SCK, 12-MISO, 11-MOSI)
+TFT_22_ILI9225 TFTscreen = TFT_22_ILI9225(TFT_RST, TFT_RS, TFT_CS, TFT_LED, TFT_BRIGHTNESS);
+int16_t x=0, y=0, width, height; //position;
+String strTextDisplay;
+
+
+#define LED_PIN 32
+
+/*********************
   | METHOD DEFINITIONS
 *********************/
 String getValue(String data, char separator, int index);
+void lcdStartup();
+void printWelcome(String gatewayName);
 void mqttConnect();
 void mqttMessageReceived(String &topic, String &payload);
 void nrfConnect();
 bool callAndReceiveNodeData(String targetQrNodeName, String payload);
 void sendStatusToServer(String room_id, String sent, String time);
+
+void switchToNRF() {
+  digitalWrite(CSN_PIN,HIGH);
+  digitalWrite(TFT_CS,HIGH);
+}
+
+void switchToLCD() {
+  digitalWrite(CSN_PIN,LOW);
+  digitalWrite(TFT_CS,LOW); 
+}
 
 void setup() {
     // setup serial communications for basic program display
@@ -132,6 +166,12 @@ void setup() {
     gatewayName = getValue(readData,'#',5); Serial.print("client name   : ");Serial.println(gatewayName);
 
     Serial.println("Finish read\n");
+
+    lcdStartup();
+    pinMode(CSN_PIN, OUTPUT);
+    pinMode(TFT_CS, OUTPUT);
+    printWelcome(gatewayName);
+    
     strSSID.toCharArray(buff2,(strSSID.length()+1));
     Serial.println(buff2);
     strPASS.toCharArray(buff1,(strPASS.length()+1));
@@ -171,6 +211,26 @@ String getValue(String data, char separator, int index) {
   }
 
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+void lcdStartup() {
+  TFTscreen.begin();
+  TFTscreen.setOrientation(0);
+  TFTscreen.setBacklightBrightness(128);
+}
+
+void printWelcome(String gatewayName) {
+  switchToLCD();
+  TFTscreen.clear();
+
+  strTextDisplay = "Gateway " + gatewayName;
+  TFTscreen.setGFXFont(&FreeSans9pt7b);
+  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height);
+  x = 10;
+  y = 100;
+  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_GREEN);
+  
+  switchToNRF();
 }
 
 
