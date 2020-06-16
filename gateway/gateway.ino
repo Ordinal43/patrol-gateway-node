@@ -260,6 +260,7 @@ void nrfConnect() {
   radio.setPALevel(RF24_PA_LOW);
   radio.setDataRate(RF24_250KBPS);
   radio.setRetries(4, 5);
+  radio.setAutoAck(false);
   radio.enableDynamicPayloads();
   
   radio.printDetails();

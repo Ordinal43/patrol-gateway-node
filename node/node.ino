@@ -185,6 +185,7 @@ void nrfConnect(byte nodeAddress[]) {
   radio.begin();
   radio.setPALevel(RF24_PA_LOW);
   radio.setDataRate(RF24_250KBPS);
+  radio.setAutoAck(false);
   radio.enableDynamicPayloads();
 
   radio.printDetails();
