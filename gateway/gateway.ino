@@ -329,6 +329,7 @@ void nrfConnect() {
 
   digitalWrite(LED_PIN, HIGH);
   Serial.println("nRF24L01+ configured...");
+  Serial.println();
 }
 
 /* Function: callAndReceiveNodeData
@@ -373,8 +374,8 @@ bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
             Serial.println(ackPayload);
 
             radio.stopListening();
-            payload = payload.substring(32-1);
-            payload.toCharArray(payloadChar, 32);
+            String payload2 = payload.substring(32-1);
+            payload2.toCharArray(payloadChar, 32);
             tx_sent = radio.write(&payloadChar, sizeof(payloadChar));
       
             if(tx_sent) {
