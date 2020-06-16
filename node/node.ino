@@ -55,6 +55,10 @@ String strQrcode="";
 
 #define LED_PIN 32
 
+// To store what time the last data is sent
+unsigned long lastSentTime = millis();
+bool shiftEmptyShown = false;
+
 /*********************
   | METHOD DEFINITIONS
 *********************/
@@ -63,6 +67,7 @@ void lcdStartup();
 void nrfConnect(byte nodeAddress[]);
 void radioCheckAndReply();
 void printQR(String strData);
+void printNoShift();
 
 void switchToNRF() {
   digitalWrite(CSN_PIN,HIGH);
@@ -140,6 +145,8 @@ void setup() {
   pinMode(CSN_PIN, OUTPUT);
   pinMode(TFT_CS, OUTPUT);
 
+  printNoShift();
+
   switchToNRF();
 }
 
@@ -148,6 +155,10 @@ void setup() {
  *    main loop program for the slave node - repeats continuously during system operation
  */
 void loop() {
+  // if more than one minute passed since last sent time display no available shift
+  if( ( (millis() - lastSentTime) > 60000 ) && !shiftEmptyShown ) {
+    printNoShift();
+  }
   radioCheckAndReply();
 }
 
@@ -228,6 +239,10 @@ void radioCheckAndReply() {
               Serial.println(completeData);
               Serial.println("--------------------------------------------------------");
               printQR(completeData);
+              
+              lastSentTime = millis();
+              shiftEmptyShown = false;
+              
               memset(completeData, 0, sizeof completeData);
               firstPartSent = false;
             } else {
@@ -294,5 +309,21 @@ void printQR(String strData) {
   y += height + 5; // Set y position to string height plus shift down 10 pixels
   TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_CYAN); // Print string
 
+  switchToNRF();
+}
+
+void printNoShift() {
+  switchToLCD();
+  TFTscreen.clear();
+
+  strTextDisplay = "No shift available"; // Create string object
+  TFTscreen.setGFXFont(&FreeSans9pt7b);
+  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
+  x = 10;
+  y = 100;
+  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_YELLOW); // Print string
+
+  shiftEmptyShown = true;
+  
   switchToNRF();
 }
