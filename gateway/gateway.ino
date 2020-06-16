@@ -46,17 +46,8 @@ char buff4[150];
 #include <RF24.h>
 #include <printf.h>
 
-// set Chip-Enable (CE) and Chip-Select-Not (CSN) radio setup pins
 #define CE_PIN 12
 #define CSN_PIN 14
-
-// set LED Pin
-#define LED_PIN 32
-
-// set transmission cycle send rate - in milliseconds
-#define SEND_RATE 1000
-
-// create RF24 radio object using selected CE and CSN pins
 RF24 radio(CE_PIN,CSN_PIN);
 
 #define MAX_NRF_CONNECTION 100
@@ -67,7 +58,6 @@ int addrAmount;
 // String array to store addresses for each sensor node
 String strArrNodeAddr[MAX_NRF_CONNECTION];
 
-// system operation timing variables - set SEND_RATE to limit transmit rate
 unsigned long currentTime;
 unsigned long lastSentTime;
 

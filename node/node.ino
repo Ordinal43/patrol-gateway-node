@@ -18,9 +18,6 @@ String strAddress;
 #define CSN_PIN 14
 RF24 radio(CE_PIN,CSN_PIN);
 
-// check how many times mesage has been received 
-int messageCount = 0;
-
 /*********************
   | SCREEN TFT ILI9225 176*220
 *********************/
