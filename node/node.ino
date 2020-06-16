@@ -126,11 +126,12 @@ void setup() {
 
   strAddress = getValue(readData,'>',0);
   strAddress = strAddress.substring(0, strAddress.length()-1);
+  strAddress = "node" + strAddress;
   Serial.print("Node address  : "); Serial.println(strAddress);
   
   Serial.println("Finish read\n");
 
-  byte byteArrNodeAddress[strAddress.length()];
+  byte byteArrNodeAddress[7];
   strAddress.getBytes(byteArrNodeAddress, strAddress.length());
 
   lcdStartup();

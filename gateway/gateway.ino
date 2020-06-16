@@ -288,12 +288,12 @@ void nrfConnect() {
  *    Make a radio call to each node in turn and retreive a message from each
  */
 bool callAndReceiveNodeData(String targetQrNodeName, String payload) {
-    byte byteArrTargetQrNodeName[targetQrNodeName.length()];
+    targetQrNodeName = "node" + targetQrNodeName;
+    byte byteArrTargetQrNodeName[7];
     targetQrNodeName.getBytes(byteArrTargetQrNodeName, targetQrNodeName.length());
     
     radio.openWritingPipe(byteArrTargetQrNodeName);
     radio.openReadingPipe(1, byteArrTargetQrNodeName);
-    
     radio.stopListening();
 
     char payloadChar[32] = "";
