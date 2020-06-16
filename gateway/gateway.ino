@@ -264,20 +264,14 @@ void mqttMessageReceived(String &topic, String &payload) {
 
 void nrfConnect() {
   digitalWrite(LED_PIN,LOW);
-  Serial.println("Begin nRF24L01+ configuration...");
+  Serial.println("Begin nRF24L01+ config...");
 
-  // begin radio object
   radio.begin();
-
   radio.setPALevel(RF24_PA_LOW);
   radio.setDataRate(RF24_250KBPS);
-  
-  // set time between retries and max no. of retries
   radio.setRetries(4, 5);
-  
   radio.enableDynamicPayloads();
   
-  // print radio config details to console
   radio.printDetails();
 
   digitalWrite(LED_PIN, HIGH);

@@ -175,21 +175,14 @@ void lcdStartup() {
 
 void nrfConnect(byte nodeAddress[]) {
   radio.begin();
-  
-  // set power level of the radio
   radio.setPALevel(RF24_PA_LOW);
-
-  // set RF datarate
   radio.setDataRate(RF24_250KBPS);
-
   radio.enableDynamicPayloads();
 
   radio.printDetails();
 
   radio.openWritingPipe(nodeAddress);
   radio.openReadingPipe(1, nodeAddress);
-  
-  // start listening on radio
   radio.startListening();
 
   digitalWrite(LED_PIN,HIGH);
