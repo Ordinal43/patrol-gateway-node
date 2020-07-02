@@ -65,6 +65,7 @@ void nrfConnect(byte nodeAddress[]);
 void radioCheckAndReply();
 void printQR(String strData);
 void printNoShift();
+void printFailed();
 
 void switchToNRF() {
   digitalWrite(CSN_PIN,HIGH);
@@ -250,9 +251,12 @@ void radioCheckAndReply() {
               firstPartSent = true;
             }
           } else {
+            Serial.println("Failed");
+            printFailed();
             memset(completeData, 0, sizeof completeData);
             firstPartSent = false;
           }
+          Serial.println("--------------------------------------------------------");
     }
 }
 
@@ -333,6 +337,27 @@ void printNoShift() {
   TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_YELLOW); // Print string
 
   shiftEmptyShown = true;
+  
+  switchToNRF();
+}
+
+void printFailed() {
+  switchToLCD();
+  TFTscreen.clear();
+
+  strTextDisplay = strAddress; // Create string object
+  strTextDisplay.toUpperCase();
+  TFTscreen.setGFXFont(&FreeSans9pt7b);
+  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
+  x = 10;
+  y = 100;
+  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_CYAN); // Print string
+
+  strTextDisplay = "RECEIVE FAILURE"; // Create string object
+  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
+  x = 10;
+  y += height + 10; // Set y position to string height plus shift down 10 pixels
+  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_RED); // Print string
   
   switchToNRF();
 }
