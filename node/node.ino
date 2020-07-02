@@ -183,6 +183,8 @@ void lcdStartup() {
 
 void nrfConnect(byte nodeAddress[]) {
   radio.begin();
+
+  radio.setChannel(108);
   radio.setPALevel(RF24_PA_LOW);
   radio.setDataRate(RF24_250KBPS);
   radio.setAutoAck(false);
