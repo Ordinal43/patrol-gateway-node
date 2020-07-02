@@ -105,6 +105,9 @@ void switchToLCD() {
   digitalWrite(TFT_CS,LOW); 
 }
 
+String address = "";
+String payload = "";
+
 void setup() {
     // setup serial communications for basic program display
     Serial.begin(115200);
@@ -131,6 +134,8 @@ void setup() {
     //strSSID#strPASS#Broker_Add#usernameMQTT#passwordMQTT#gatewayName>
     //bryan-poenya#lalelilolu#broker.shiftr.io#patrol_system#patrol_system#ESP_Gateway_1>
     //ricky#abcdefgh#broker.shiftr.io#samuelricky-skripsi-coba#sukukata123#2>
+
+    //ricky#abcdefgh#broker.shiftr.io#samuelricky-skripsi-coba#sukukata123#2#1#testing123testing123testing123testing123testing123>
 
     Serial.println("");
     String outMessage = "";
@@ -162,37 +167,42 @@ void setup() {
     usernameMQTT = getValue(readData,'#',3); Serial.print("username      : ");Serial.println(usernameMQTT);
     passwordMQTT = getValue(readData,'#',4); Serial.print("password      : ");Serial.println(passwordMQTT);
     gatewayName = getValue(readData,'#',5); Serial.print("client name   : ");Serial.println(gatewayName);
-
-    Serial.println("Finish read\n");
+    address = getValue(readData,'#',6); Serial.print("Address     : "); Serial.println(address);
+    payload = getValue(readData,'#',7); Serial.print("Payload     : "); Serial.println(payload);
+    
+    Serial.println("Finish read\n");    
 
     lcdStartup();
     pinMode(CSN_PIN, OUTPUT);
     pinMode(TFT_CS, OUTPUT);
     printWelcome(gatewayName);
     
-    strSSID.toCharArray(buff2,(strSSID.length()+1));
-    Serial.println(buff2);
-    strPASS.toCharArray(buff1,(strPASS.length()+1));
-    Serial.println(buff1);
-    WiFi.begin(buff2, buff1);
+//    strSSID.toCharArray(buff2,(strSSID.length()+1));
+//    Serial.println(buff2);
+//    strPASS.toCharArray(buff1,(strPASS.length()+1));
+//    Serial.println(buff1);
+//    WiFi.begin(buff2, buff1);
 
     // Note: Local domain names (e.g. "Computer.local" on OSX) are not supported by Arduino.
     // You need to set the IP address directly.
     //client.begin("192.168.43.182", net); //mosquitto broker
-    strBrokerAdd.toCharArray(buff2,(strBrokerAdd.length()+1));
-    client.begin(buff2, net);
-    client.onMessage(mqttMessageReceived);
+//    strBrokerAdd.toCharArray(buff2,(strBrokerAdd.length()+1));
+//    client.begin(buff2, net);
+//    client.onMessage(mqttMessageReceived);
     
-    mqttConnect();
+//    mqttConnect();
     nrfConnect();
 }
 
 void loop() {
   // wait for any configuration payload from MQTT
-  client.loop();
-  if (!client.connected()) {
-    mqttConnect();
-  }
+//  client.loop();
+//  if (!client.connected()) {
+//    mqttConnect();
+//  }
+
+    callAndReceiveNodeData(address, payload);
+    delay(5000);
 }
 
 String getValue(String data, char separator, int index) {
