@@ -55,6 +55,7 @@ String strQrcode="";
 // To store what time the last data is sent
 unsigned long lastSentTime = millis();
 bool shiftEmptyShown = false;
+String qrStr = "AgIyv5iQR5UBQUBX4hMfHLEtcwnPBif8mI2yOikJgKs=";
 
 /*********************
   | METHOD DEFINITIONS
@@ -143,7 +144,7 @@ void setup() {
   pinMode(CSN_PIN, OUTPUT);
   pinMode(TFT_CS, OUTPUT);
 
-  printNoShift();
+  printQR(qrStr);
 
   switchToNRF();
 }
@@ -155,7 +156,8 @@ void setup() {
 void loop() {
   // if more than one minute passed since last sent time display no available shift
   if( ( (millis() - lastSentTime) > 60000 ) && !shiftEmptyShown ) {
-    printNoShift();
+    printQR(qrStr);
+    lastSentTime = millis();
   }
   radioCheckAndReply();
 }
@@ -186,7 +188,7 @@ void nrfConnect(byte nodeAddress[]) {
   radio.begin();
 
   radio.setChannel(108);
-  radio.setPALevel(RF24_PA_LOW);
+  radio.setPALevel(RF24_PA_MAX);
   radio.setDataRate(RF24_250KBPS);
   radio.setAutoAck(false);
   radio.enableDynamicPayloads();
@@ -219,45 +221,6 @@ void radioCheckAndReply() {
     while ( !radio.available() && !timeout )
       if (millis() - started_waiting_at > 500)
         timeout = true;
-
-    if (!timeout) {
-          char dataFromMaster[32] = "";
-          radio.read( &dataFromMaster, sizeof(dataFromMaster) );
-
-          Serial.print("Received part ");
-          if(!firstPartSent)
-            Serial.print("(1/2) :");
-          else
-            Serial.print("(2/2) :");
-          
-          Serial.println(dataFromMaster);
-          strcat(completeData, dataFromMaster);
-
-          radio.stopListening();
-          bool tx_sent = radio.write(&message, 10);
-          if(tx_sent) {
-            if(firstPartSent) {
-              Serial.print("Complete payload from gateway: ");
-              Serial.println(completeData);
-              Serial.println("--------------------------------------------------------");
-              printQR(completeData);
-              
-              lastSentTime = millis();
-              shiftEmptyShown = false;
-              
-              memset(completeData, 0, sizeof completeData);
-              firstPartSent = false;
-            } else {
-              firstPartSent = true;
-            }
-          } else {
-            Serial.println("Failed");
-            printFailed();
-            memset(completeData, 0, sizeof completeData);
-            firstPartSent = false;
-          }
-          Serial.println("--------------------------------------------------------");
-    }
 }
 
 void printQR(String strData) {
