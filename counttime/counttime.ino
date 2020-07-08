@@ -201,8 +201,9 @@ void printCurrentTime() {
   strTextDisplay += days;
   strTextDisplay += "D, ";  
   strTextDisplay += getFormatted(hours);
-  strTextDisplay += ":";
+  strTextDisplay += "H, ";
   strTextDisplay += getFormatted(minutes);
+  strTextDisplay += "m";
   
   TFTscreen.setGFXFont(&FreeSans9pt7b);
   TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
