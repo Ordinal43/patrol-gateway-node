@@ -37,24 +37,26 @@ TFT_22_ILI9225 TFTscreen = TFT_22_ILI9225(TFT_RST, TFT_RS, TFT_CS, TFT_LED, TFT_
 int16_t x=0, y=0, width, height; //position;
 String strTextDisplay;
 
-/*********************
-  | QR CODE
-*********************/
-#include "qrcode.h"
-QRCode qrcode;
-uint8_t vers = 3;
-uint8_t pixel = 5;
-uint8_t offset_x = 15;
-uint8_t offset_y = 5;
-uint8_t borderWidth = 5;
-char dataCharArray[100];
-String strQrcode="";
-
 #define LED_PIN 32
 
-// To store what time the last data is sent
+/*********************
+  | TIMER
+*********************/
+// macros from DateTime.h
+/* Useful Constants */
+#define SECS_PER_MIN  (60UL)
+#define SECS_PER_HOUR (3600UL)
+#define SECS_PER_DAY  (SECS_PER_HOUR * 24L)
+
+/* Useful Macros for getting elapsed time */
+#define numberOfSeconds(_time_) (_time_ % SECS_PER_MIN)  
+#define numberOfMinutes(_time_) ((_time_ / SECS_PER_MIN) % SECS_PER_MIN)
+#define numberOfHours(_time_) (( _time_% SECS_PER_DAY) / SECS_PER_HOUR)
+#define elapsedDays(_time_) ( _time_ / SECS_PER_DAY)
+
 unsigned long startTime = millis();
 unsigned long lastSentTime = startTime;
+String lastMeasurements;
 
 /*********************
   | METHOD DEFINITIONS
@@ -92,9 +94,9 @@ void setup() {
   digitalWrite(LED_PIN,LOW);
 
   Serial.println("Read data from EEPROM");
-  String readData = EEPROM.readString(0); 
-  Serial.println("Last measurements:");
-  Serial.println(readData);
+  lastMeasurements = EEPROM.readString(0); 
+  Serial.println("Previous run measurement:");
+  Serial.println(lastMeasurements);
   Serial.println();
 
   strAddress = "1node";
@@ -119,6 +121,15 @@ void loop() {
   if( ( (millis() - lastSentTime) > 60000 ) ) {
     printCurrentTime();
     lastSentTime = millis();
+    
+    // save to EEPROM;
+    EEPROM.writeString(0, strTextDisplay);
+    EEPROM.commit();
+
+    Serial.println("Previous run measurement:");
+    Serial.println(lastMeasurements);
+    Serial.println();
+    
   }
 
   // for first time print only
@@ -148,7 +159,7 @@ void nrfConnect(byte nodeAddress[]) {
   radio.openReadingPipe(1, nodeAddress);
   radio.startListening();
 
-  digitalWrite(LED_PIN,HIGH);
+//  digitalWrite(LED_PIN,HIGH);
   Serial.println("nRF24L01+ configured...");
 }
 
@@ -175,18 +186,6 @@ void radioCheckAndReply() {
     radio.write(&payloadChar, sizeof(payloadChar));
 }
 
-// macros from DateTime.h
-/* Useful Constants */
-#define SECS_PER_MIN  (60UL)
-#define SECS_PER_HOUR (3600UL)
-#define SECS_PER_DAY  (SECS_PER_HOUR * 24L)
-
-/* Useful Macros for getting elapsed time */
-#define numberOfSeconds(_time_) (_time_ % SECS_PER_MIN)  
-#define numberOfMinutes(_time_) ((_time_ / SECS_PER_MIN) % SECS_PER_MIN)
-#define numberOfHours(_time_) (( _time_% SECS_PER_DAY) / SECS_PER_HOUR)
-#define elapsedDays(_time_) ( _time_ / SECS_PER_DAY)
-
 void printCurrentTime() {
   switchToLCD();
   TFTscreen.clear();
@@ -197,7 +196,6 @@ void printCurrentTime() {
   int days = elapsedDays(diff);
   int hours = numberOfHours(diff);
   int minutes = numberOfMinutes(diff);
-//  int seconds = numberOfSeconds(diff);
 
   strTextDisplay = "";
   strTextDisplay += days;
@@ -205,15 +203,13 @@ void printCurrentTime() {
   strTextDisplay += getFormatted(hours);
   strTextDisplay += ":";
   strTextDisplay += getFormatted(minutes);
-//  strTextDisplay += ":";
-//  strTextDisplay += getFormatted(seconds);
   
   TFTscreen.setGFXFont(&FreeSans9pt7b);
   TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
   x = 10;
   y = 100;
   TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_YELLOW); // Print string
-  
+
   switchToNRF();
 }
 
