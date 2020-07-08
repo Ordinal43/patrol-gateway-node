@@ -53,19 +53,17 @@ String strQrcode="";
 #define LED_PIN 32
 
 // To store what time the last data is sent
-unsigned long lastSentTime = millis();
-bool shiftEmptyShown = false;
-String qrStr = "AgIyv5iQR5UBQUBX4hMfHLEtcwnPBif8mI2yOikJgKs=";
+unsigned long startTime = millis();
+unsigned long lastSentTime = startTime;
 
 /*********************
   | METHOD DEFINITIONS
 *********************/
-String getValue(String data, char separator, int index);
 void lcdStartup();
 void nrfConnect(byte nodeAddress[]);
 void radioCheckAndReply();
-void printNoShift();
-void printFailed();
+void printCurrentTime();
+String getFormatted(byte value);
 
 void switchToNRF() {
   digitalWrite(CSN_PIN,HIGH);
@@ -78,62 +76,28 @@ void switchToLCD() {
 }
 
 void setup() {
-
-  // setup serial communications for basic program display
-  Serial.begin(115200);
-  Serial.println("[*][*][*] Beginning nRF24L01+ ack-payload node device program [*][*][*]");
-
-  printf_begin();
-  
   if (!EEPROM.begin(200)) {
     Serial.println("Failed to initialise EEPROM");
     Serial.println("Restarting...");
     delay(1000);
     ESP.restart();
   }
+  // setup serial communications for basic program display
+  Serial.begin(115200);
+  Serial.println("[*][*][*] Beginning nRF24L01+ ack-payload node device program [*][*][*]");
 
-  byte counter = 0;
-  Serial.print("Waiting serial data in 10 seconds");
-  while(!Serial.available()) {
-    Serial.print('.');
-    delay(1000);
-    counter++;
-    if(counter>=10) break;
-  }
-
-  // strAddress>
-  // QR_Node>
-    
-  Serial.println("");
-  String outMessage = "";
-  while(Serial.available()>0){
-    char inChar = Serial.read();
-    outMessage.concat(inChar);
-    if(inChar == '>'){
-      Serial.println("Receive serial data");
-      Serial.println(outMessage);
-      Serial.println("Write to EEPROM");
-      EEPROM.writeString(0,outMessage);
-      EEPROM.commit();
-      Serial.println("Writing data success");
-      break;
-    }
-  }
+  printf_begin();
   
   pinMode(LED_PIN,OUTPUT);
   digitalWrite(LED_PIN,LOW);
 
   Serial.println("Read data from EEPROM");
   String readData = EEPROM.readString(0); 
+  Serial.println("Last measurements:");
   Serial.println(readData);
+  Serial.println();
 
-  strAddress = getValue(readData,'>',0);
-  strAddress = strAddress.substring(0, strAddress.length()-1);
-  strAddress = strAddress + "node";
-  Serial.print("Node address  : "); Serial.println(strAddress);
-  
-  Serial.println("Finish read\n");
-
+  strAddress = "1node";
   byte byteArrNodeAddress[7];
   strAddress.getBytes(byteArrNodeAddress, strAddress.length());
 
@@ -143,7 +107,6 @@ void setup() {
   pinMode(CSN_PIN, OUTPUT);
   pinMode(TFT_CS, OUTPUT);
 
-
   switchToNRF();
 }
 
@@ -151,30 +114,19 @@ void setup() {
 /* Function: loop
  *    main loop program for the slave node - repeats continuously during system operation
  */
-unsigned long startTime = millis();
 void loop() {
   // if more than one minute passed since last sent time display no available shift
-  if( ( (millis() - lastSentTime) > 60000 ) && !shiftEmptyShown ) {
+  if( ( (millis() - lastSentTime) > 60000 ) ) {
+    printCurrentTime();
+    lastSentTime = millis();
+  }
+
+  // for first time print only
+  if( lastSentTime == startTime) {
     printCurrentTime();
     lastSentTime = millis();
   }
   radioCheckAndReply();
-}
-
-String getValue(String data, char separator, int index) {
-  int found = 0;
-  int strIndex[] = {0, -1};
-  int maxIndex = data.length()-1;
-
-  for(int i=0; i<=maxIndex && found<=index; i++){
-    if(data.charAt(i)==separator || i==maxIndex){
-        found++;
-        strIndex[0] = strIndex[1]+1;
-        strIndex[1] = (i == maxIndex) ? i+1 : i;
-    }
-  }
-
-  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
 void lcdStartup() {
@@ -192,8 +144,6 @@ void nrfConnect(byte nodeAddress[]) {
   radio.setAutoAck(false);
   radio.enableDynamicPayloads();
 
-  radio.printDetails();
-
   radio.openWritingPipe(nodeAddress);
   radio.openReadingPipe(1, nodeAddress);
   radio.startListening();
@@ -207,26 +157,57 @@ void nrfConnect(byte nodeAddress[]) {
  *    sends the preloaded node data over the nrf24l01+ radio when
  *    a message is received by the master
  */
-
-bool firstPartSent = false;
-char message[10] = "Received!";
-char completeData[70] = "";
-
+String payload = "12345678901234567890123456789012";
 void radioCheckAndReply() {
     radio.startListening();
     
+    // mock receive attempt
     unsigned long started_waiting_at = millis();
     bool timeout = false;
     while ( !radio.available() && !timeout )
       if (millis() - started_waiting_at > 500)
         timeout = true;
+
+    // mock Send
+    
+    char payloadChar[32] = "";
+    payload.toCharArray(payloadChar, 32);
+    radio.write(&payloadChar, sizeof(payloadChar));
 }
+
+// macros from DateTime.h
+/* Useful Constants */
+#define SECS_PER_MIN  (60UL)
+#define SECS_PER_HOUR (3600UL)
+#define SECS_PER_DAY  (SECS_PER_HOUR * 24L)
+
+/* Useful Macros for getting elapsed time */
+#define numberOfSeconds(_time_) (_time_ % SECS_PER_MIN)  
+#define numberOfMinutes(_time_) ((_time_ / SECS_PER_MIN) % SECS_PER_MIN)
+#define numberOfHours(_time_) (( _time_% SECS_PER_DAY) / SECS_PER_HOUR)
+#define elapsedDays(_time_) ( _time_ / SECS_PER_DAY)
 
 void printCurrentTime() {
   switchToLCD();
   TFTscreen.clear();
 
-  strTextDisplay = strAddress;
+  unsigned long diff = millis() - startTime;
+  diff /= 1000;     // convert to seconds
+  
+  int days = elapsedDays(diff);
+  int hours = numberOfHours(diff);
+  int minutes = numberOfMinutes(diff);
+//  int seconds = numberOfSeconds(diff);
+
+  strTextDisplay = "";
+  strTextDisplay += days;
+  strTextDisplay += "D, ";  
+  strTextDisplay += getFormatted(hours);
+  strTextDisplay += ":";
+  strTextDisplay += getFormatted(minutes);
+//  strTextDisplay += ":";
+//  strTextDisplay += getFormatted(seconds);
+  
   TFTscreen.setGFXFont(&FreeSans9pt7b);
   TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
   x = 10;
@@ -236,23 +217,8 @@ void printCurrentTime() {
   switchToNRF();
 }
 
-void printFailed() {
-  switchToLCD();
-  TFTscreen.clear();
-
-  strTextDisplay = strAddress; // Create string object
-  strTextDisplay.toUpperCase();
-  TFTscreen.setGFXFont(&FreeSans9pt7b);
-  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
-  x = 10;
-  y = 100;
-  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_CYAN); // Print string
-
-  strTextDisplay = "RECEIVE FAILURE"; // Create string object
-  TFTscreen.getGFXTextExtent(strTextDisplay, x, y, &width, &height); // Get string extents
-  x = 10;
-  y += height + 10; // Set y position to string height plus shift down 10 pixels
-  TFTscreen.drawGFXText(x, y, strTextDisplay, COLOR_RED); // Print string
-  
-  switchToNRF();
+String getFormatted(byte digit) {
+  String formatted = "";
+  if(digit < 10) formatted += "0";
+  return formatted + digit;
 }
